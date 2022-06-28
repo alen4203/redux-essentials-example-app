@@ -1,22 +1,37 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { postAdded } from './postsSlice'
+import { selectAllUsers } from '../users/usersSlice'
+import { addNewPost } from './postsSlice'
 
 export default function AddPostForm() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [userId, setUserId] = useState('')
+  const [addRequestStatus, setAddRequestStatus] = useState('idle')
 
-  const users = useSelector((state) => state.users)
+  const users = useSelector(selectAllUsers)
   const dispatch = useDispatch()
 
-  const handleSavePost = function (e) {
+  const canSave =
+    [title, content, userId].every((val) => Boolean(val)) &&
+    addRequestStatus === 'idle'
+
+  const handleSavePost = async function (e) {
     e.preventDefault()
 
-    dispatch(postAdded(title, content, userId))
-    setTitle('')
-    setContent('')
-    setUserId('')
+    if (canSave) {
+      try {
+        setAddRequestStatus('pending')
+        await dispatch(addNewPost({ title, content, user: userId })).unwrap()
+        setTitle('')
+        setContent('')
+        setUserId('')
+      } catch (err) {
+        console.error('Fail to save the post: ', err)
+      } finally {
+        setAddRequestStatus('idle')
+      }
+    }
   }
   return (
     <section>
@@ -56,7 +71,7 @@ export default function AddPostForm() {
           onChange={(e) => setContent(e.target.value)}
           value={content}
         />
-        <button type="submit" disabled={!userId || !title || !content}>
+        <button type="submit" disabled={!canSave}>
           Save Post
         </button>
       </form>

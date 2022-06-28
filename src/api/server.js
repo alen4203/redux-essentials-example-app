@@ -84,7 +84,7 @@ export const db = factory({
     thumbsUp: Number,
     hooray: Number,
     heart: Number,
-    rocket: Number,
+    sad: Number,
     eyes: Number,
     post: oneOf('post'),
   },
